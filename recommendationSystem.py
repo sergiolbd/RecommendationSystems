@@ -99,11 +99,40 @@ class RecommendationSystem:
           divisor = x2 * y2
                 
           self.sim[u][v] = round((sumOfDividend / divisor),2)
-    
-    
+  
     
   def euclideanDistance(self):
     print("Euclidean")
+    
+    # u y v usuarios
+    numOfUsers = len(self.utilityMatrix)
+    numOfItems = len(self.utilityMatrix[0])
+    
+    for u in range(numOfUsers):
+      for v in range(numOfUsers):
+        if (u == v):
+          self.sim[u][v] = 0.0 # Distancia entre dos puntos = 0
+        else: 
+          # Suv = conjunto de items calificados por u y s
+          # Creamos un array de 0's y marcamos con un 1 las calificaciones en las que u y v han calificado
+          itemsCalificados = [0] * numOfItems
+          
+          for i in range(numOfItems):
+            if (self.utilityMatrix[u][i] != -1 and self.utilityMatrix[v][i] != -1):
+              itemsCalificados[i] = 1
+             
+          dEuc, sum, x, y = 0, 0, 0, 0
+      
+          # Aplicamos fórmula para obtener la similitud entre usuarios
+          for i in range(numOfItems):
+            if (itemsCalificados[i] == 1): # Solo los que hayan sido calificados por ambos
+              x = self.utilityMatrix[u][i]
+              y = self.utilityMatrix[v][i]
+              sum += (x - y) ** 2
+              
+          dEuc = math.sqrt(sum)
+                
+          self.sim[u][v] = round(dEuc,2)
     
     
   def getSimilarityMatrix(self):

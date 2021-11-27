@@ -16,5 +16,6 @@ A = RS(args.file)
 # A.pearson()
 
 print("----------------------------")
-A.cosineDistance()
+# A.cosineDistance()
+A.euclideanDistance()
 print(A.getSimilarityMatrix())
