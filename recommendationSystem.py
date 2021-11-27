@@ -66,12 +66,48 @@ class RecommendationSystem:
   def cosineDistance(self):
     print("Coseno")
     
+    # u y v usuarios
+    numOfUsers = len(self.utilityMatrix)
+    numOfItems = len(self.utilityMatrix[0])
+    
+    for u in range(numOfUsers):
+      for v in range(numOfUsers):
+        if (u == v):
+          self.sim[u][v] = 1.0
+        else: 
+          # Suv = conjunto de items calificados por u y s
+          # Creamos un array de 0's y marcamos con un 1 las calificaciones en las que u y v han calificado
+          itemsCalificados = [0] * numOfItems
+          
+          for i in range(numOfItems):
+            if (self.utilityMatrix[u][i] != -1 and self.utilityMatrix[v][i] != -1):
+              itemsCalificados[i] = 1
+             
+          sumOfDividend, divisor, sumOfx, sumOfy, x, y = 0, 0, 0, 0, 0, 0
+      
+          # Aplicamos fórmula para obtener la similitud entre usuarios
+          for i in range(numOfItems):
+            if (itemsCalificados[i] == 1): # Solo los que hayan sido calificados por ambos
+              x = self.utilityMatrix[u][i]
+              y = self.utilityMatrix[v][i]
+              sumOfDividend += x * y
+              sumOfx += x ** 2
+              sumOfy += y ** 2
+              
+          x2 = math.sqrt(sumOfx)
+          y2 = math.sqrt(sumOfy)
+          divisor = x2 * y2
+                
+          self.sim[u][v] = round((sumOfDividend / divisor),2)
+    
+    
+    
   def euclideanDistance(self):
     print("Euclidean")
     
     
   def getSimilarityMatrix(self):
-    self.sim
+    return self.sim
     
   # Convertir la matrix generada por loadtxt en una matrix con la que 
   # se pueda trabajas, es decir todos los datos de un mismo tipo

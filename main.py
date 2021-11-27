@@ -13,6 +13,8 @@ args = parser.parse_args()
 # print(args.metrics)
 
 A = RS(args.file)
-A.pearson()
-print("----------------------------")
+# A.pearson()
 
+print("----------------------------")
+A.cosineDistance()
+print(A.getSimilarityMatrix())
