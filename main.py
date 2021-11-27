@@ -13,9 +13,6 @@ args = parser.parse_args()
 # print(args.metrics)
 
 A = RS(args.file)
-# A.pearson()
-# print(A.matrix)
-# # Leer un fichero
-# A = np.loadtxt(args.file, dtype=str)
+A.pearson()
+print("----------------------------")
 
-# print(int(A[0][0])+1)
