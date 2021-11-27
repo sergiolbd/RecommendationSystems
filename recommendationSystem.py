@@ -13,6 +13,8 @@ class RecommendationSystem:
     
     self.sim = np.zeros((len(self.utilityMatrix), len(self.utilityMatrix)), dtype=float)
     
+    self.simOrderByProximity = np.zeros((len(self.utilityMatrix), len(self.utilityMatrix)))
+    
   def pearson(self):
     print("Pearson")
     # u y v usuarios
@@ -61,8 +63,8 @@ class RecommendationSystem:
           divisor = x2 * y2
                 
           self.sim[u][v] = round((sumOfDividend / divisor),2)
+    self.orderByProximity(True)
 
-  
   def cosineDistance(self):
     print("Coseno")
     
@@ -99,8 +101,8 @@ class RecommendationSystem:
           divisor = x2 * y2
                 
           self.sim[u][v] = round((sumOfDividend / divisor),2)
+    self.orderByProximity(True)
   
-    
   def euclideanDistance(self):
     print("Euclidean")
     
@@ -133,11 +135,31 @@ class RecommendationSystem:
           dEuc = math.sqrt(sum)
                 
           self.sim[u][v] = round(dEuc,2)
+    self.orderByProximity(False)
     
+  def orderByProximity(self, flag):
+    
+    simOrderByProximity = np.zeros((len(self.utilityMatrix), len(self.utilityMatrix)))
+    if (flag == True): # Ordenar de mayor a menor
+      for u in range(len(self.sim)):
+        simOrderByProximity[u] = sorted(self.sim[u], reverse=True)
+    else: # Ordenar de menor a mayor
+      for u in range(len(self.sim)):
+        simOrderByProximity[u] = sorted(self.sim[u])
+      
+    self.simOrderByProximity = simOrderByProximity
+
+  
     
   def getSimilarityMatrix(self):
     return self.sim
     
+  def getSimOrder(self):
+    return self.simOrderByProximity   
+  
+  def getUtilityMatrix(self):
+    return self.matrix
+  
   # Convertir la matrix generada por loadtxt en una matrix con la que 
   # se pueda trabajas, es decir todos los datos de un mismo tipo
   def matrixConverter(self):
