@@ -25,17 +25,14 @@ if (os.path.exists('./utilityMatrix/' + args.file) and  args.neighbors > 2):
   else:
     A.predictionSimple()
   
-  
-  
-  print("------------Matrix Utilidad----------------")
+
+  print("\n------------Matrix Utilidad----------------")
   print(A.getUtilityMatrix())
-  print("------------Matrix Similitud----------------")
+  print("\n------------Matrix Similitud----------------")
   print(A.getSimilarityMatrix())
-  print("------------Matrix Ordenada----------------")
+  print("\n------------Matrix Ordenada----------------")
   print(A.getSimOrder())
-  print("------------Matrix utilidad con predicciones----------------")
-  # A.predictionSimple()
-  # A.predictionDifferenceMean()
+  print("\n------------Matrix utilidad con predicciones----------------")
   print(A.getPredictionMatrix())
 else: 
   print("File not found or num of neighbors is less than three")

@@ -1,7 +1,8 @@
 import numpy as np
 import math
 
-
+# Clase que almacena los atributos y métodos necesarios de un sistema de recomendación
+# siguiendo el método de filtrado colaborativo
 class RecommendationSystem:
   
   # Constructor de la clase
@@ -11,7 +12,7 @@ class RecommendationSystem:
     self.utilityMatrix = None # Matriz de utilidad Números enteros
     self.matrixConverter()
     
-    self.sim = np.zeros((len(self.utilityMatrix), len(self.utilityMatrix[0])), dtype=float)
+    self.sim = np.zeros((len(self.utilityMatrix), len(self.utilityMatrix)), dtype=float)
     
     self.simOrderByProximity = np.zeros((len(self.utilityMatrix), len(self.utilityMatrix)))
     
@@ -26,7 +27,7 @@ class RecommendationSystem:
     
   def pearson(self):
     print("Pearson")
-    # u y v usuarios
+
     numOfUsers = len(self.utilityMatrix)
     numOfItems = len(self.utilityMatrix[0])
     
@@ -46,15 +47,8 @@ class RecommendationSystem:
               numOfItemsCalificados += 1
              
           # Media de calificaciones de los usuarios (r(u))
-          meanUserU = 0
-          meanUserV = 0
-          for i in range(numOfItems):
-            if (itemsCalificados[i] == 1):
-              meanUserU += self.utilityMatrix[u][i]  # Calificación del usuario u del item i
-              meanUserV += self.utilityMatrix[v][i]
-          
-          meanUserU /= numOfItemsCalificados
-          meanUserV /= numOfItemsCalificados
+          meanUserU = self.mean(u)
+          meanUserV = self.mean(v)
                 
           sumOfDividend, divisor, sumOfx, sumOfy, x, y = 0, 0, 0, 0, 0, 0
       
@@ -71,7 +65,10 @@ class RecommendationSystem:
           y2 = math.sqrt(sumOfy)
           divisor = x2 * y2
                 
-          self.sim[u][v] = round((sumOfDividend / divisor),2)
+          sim = round((sumOfDividend / divisor),2)
+          # Normalizar los valores de similitud entre [0,1]
+          sim = (sim-(-1)) / (1-(-1))
+          self.sim[u][v] = sim
     self.orderByProximity(True)
 
   def cosineDistance(self):
@@ -168,21 +165,73 @@ class RecommendationSystem:
         if (self.utilityMatrix[u][i] != -1):
           self.predictionMatrix[u][i] = self.utilityMatrix[u][i]
         else:
-          # print("User " + str(u) + " Item " + str(i))
           # Encontrar los k vecinos más proximos a u
           k = self.nearNeighbors(u)
           dividend, divisor = 0, 0
           meanUserU = self.mean(u)
+          count = 0
           for v in k:
-            sim = self.sim[u][v]
-            r = self.utilityMatrix[v][i]
-            meanUserV = self.mean(v)
+             # Comprobar que solo se realizan los vecinos necesarios
+            if (count < self.numOfNeighbors):
+              sim = self.sim[u][v]
+              r = self.utilityMatrix[v][i]
+              if (r == -1):
+                count += -1
+              else:
+                meanUserV = self.mean(v)
+
+                dividend += sim * (r - meanUserV)
+                divisor += abs(sim)
+                count += 1
+          
+          x = round(meanUserU + (dividend/divisor),2)
+          self.predictionMatrix[u][i] = x
+          print("Valor predecido para User " + str(u) + " Item " + str(i) + " = " + str(x))
+          
   
-            dividend += sim * (r - meanUserV)
-            divisor += abs(sim)
+  def predictionSimple(self):
+    
+    for u in range(len(self.utilityMatrix)):
+      for i in range(len(self.utilityMatrix[u])):
+        if (self.utilityMatrix[u][i] != -1):
+          self.predictionMatrix[u][i] = self.utilityMatrix[u][i]
+        else:
+          # Encontrar los k vecinos más proximos a u
+          k = self.nearNeighbors(u)
+          dividend, divisor = 0, 0
+          count = 0
+          for v in k:
+            # Comprobar que solo se realizan los vecinos necesarios
+            if (count < self.numOfNeighbors):
+              sim = self.sim[u][v]
+              r = self.utilityMatrix[v][i]
+              # Si la calificación es desconocida entonces es -1 y no la cogemos sino pasamos al siguiente vecino
+              if (r == -1):
+                count += -1
+              else: 
+                dividend += sim * r
+                divisor += abs(sim)
+                count += 1
+
+          x = round(dividend/divisor, 2)
+          self.predictionMatrix[u][i] = x
+          print("Valor predecido para User " + str(u) + " Item " + str(i) + " = " + str(x))
           
-          self.predictionMatrix[u][i] = round(meanUserU + (dividend/divisor),2)
           
+  def nearNeighbors(self, u):
+    p = []
+    for i in range(1, len(self.simOrderByProximity)):
+      p.append(self.simOrderByProximity[u][i])
+    
+    indices = []
+    for i in range(len(p)):
+      for j in range(len(self.sim[u])):
+        if (p[i] == self.sim[u][j] and j not in indices):
+          indices.append(j)
+          
+    print("Vecinos más cercanos a " + str(u) + " = " + str(indices))
+    return indices
+  
   # Calcular la media de calificaciones de un determinado usuario
   def mean(self, u):
     numOfItems = len(self.utilityMatrix[u])
@@ -202,41 +251,6 @@ class RecommendationSystem:
     meanUserU /= numOfItemsCalificadosU
     
     return meanUserU
-          
-  
-  def predictionSimple(self):
-    
-    for u in range(len(self.utilityMatrix)):
-      for i in range(len(self.utilityMatrix[u])):
-        if (self.utilityMatrix[u][i] != -1):
-          self.predictionMatrix[u][i] = self.utilityMatrix[u][i]
-        else:
-          # print("User " + str(u) + " Item " + str(i))
-          # Encontrar los k vecinos más proximos a u
-          k = self.nearNeighbors(u)
-          dividend, divisor = 0, 0
-          for v in k:
-            sim = self.sim[u][v]
-            r = self.utilityMatrix[v][i]
-            
-            dividend += sim * r
-            divisor += abs(sim)
-      
-          self.predictionMatrix[u][i] = round(dividend/divisor, 2)
-          
-          
-  def nearNeighbors(self, u):
-    p = []
-    for i in range(1, self.numOfNeighbors+1):
-      p.append(self.simOrderByProximity[u][i])
-    
-    indices = []
-    for i in range(len(p)):
-      for j in range(len(self.sim[u])):
-        if (p[i] == self.sim[u][j]):
-          indices.append(j)
-          
-    return indices
     
   def getSimOrder(self):
     return self.simOrderByProximity   
