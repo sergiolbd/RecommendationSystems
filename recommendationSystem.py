@@ -5,15 +5,22 @@ import math
 class RecommendationSystem:
   
   # Constructor de la clase
-  def __init__(self, file):
+  def __init__(self, file, neighbors):
     self.matrix = np.loadtxt(file, dtype=str) # Matriz leida del fichero
     
     self.utilityMatrix = None # Matriz de utilidad Números enteros
     self.matrixConverter()
     
-    self.sim = np.zeros((len(self.utilityMatrix), len(self.utilityMatrix)), dtype=float)
+    self.sim = np.zeros((len(self.utilityMatrix), len(self.utilityMatrix[0])), dtype=float)
     
     self.simOrderByProximity = np.zeros((len(self.utilityMatrix), len(self.utilityMatrix)))
+    
+    self.numOfNeighbors = neighbors
+    
+    self.predictionMatrix = np.zeros((len(self.utilityMatrix), len(self.utilityMatrix[0])))
+    
+    # self.predictionDifferenceMean()
+    # self.predictionSimple()
     
   def pearson(self):
     print("Pearson")
@@ -149,16 +156,96 @@ class RecommendationSystem:
       
     self.simOrderByProximity = simOrderByProximity
 
-  
-    
   def getSimilarityMatrix(self):
     return self.sim
+    
+   
+  def predictionDifferenceMean(self):
+    
+    for u in range(len(self.utilityMatrix)):
+      for i in range(len(self.utilityMatrix[u])):
+        if (self.utilityMatrix[u][i] != -1):
+          self.predictionMatrix[u][i] = self.utilityMatrix[u][i]
+        else:
+          print("User " + str(u) + " Item " + str(i))
+          # Encontrar los k vecinos más proximos a u
+          simNeighbors, k = self.nearNeighbors(u)
+          print(simNeighbors, k)
+          dividend, divisor = 0, 0
+          meanUserU = self.mean(u)
+          for v in k:
+            sim = self.sim[u][v]
+            r = self.utilityMatrix[v][i]
+            # print (sim, r)
+        
+            meanUserV = self.mean(v)
+            print(meanUserU, meanUserV)
+        
+            
+            dividend += sim * (r - meanUserV)
+            divisor += abs(sim)
+          
+          self.predictionMatrix[u][i] = round(meanUserU + (dividend/divisor),2)
+          
+  def mean(self, u):
+    numOfItems = len(self.utilityMatrix[u])
+    itemsCalificadosU = [0] * numOfItems
+    numOfItemsCalificadosU = 0
+  
+    for j in range(numOfItems):
+      if (self.utilityMatrix[u][j] != -1):
+        itemsCalificadosU[j] = 1
+        numOfItemsCalificadosU += 1
+      
+    meanUserU = 0
+    for j in range(numOfItems):
+      if (itemsCalificadosU[j] == 1):
+        meanUserU += self.utilityMatrix[u][j]
+            
+    meanUserU /= numOfItemsCalificadosU
+    
+    return meanUserU
+          
+  
+  def predictionSimple(self):
+    
+    for u in range(len(self.utilityMatrix)):
+      for i in range(len(self.utilityMatrix[u])):
+        if (self.utilityMatrix[u][i] != -1):
+          self.predictionMatrix[u][i] = self.utilityMatrix[u][i]
+        else:
+          print("User " + str(u) + " Item " + str(i))
+          # Encontrar los k vecinos más proximos a u
+          simNeighbors, k = self.nearNeighbors(u)
+          dividend, divisor = 0, 0
+          for v in k:
+            sim = self.sim[u][v]
+            r = self.utilityMatrix[v][i]
+            
+            dividend += sim * r
+            
+            divisor += abs(sim)
+      
+          self.predictionMatrix[u][i] = round(dividend/divisor, 2)
+          
+          
+  def nearNeighbors(self, u):
+    p = []
+    for i in range(1, self.numOfNeighbors+1):
+      p.append(self.simOrderByProximity[u][i])
+    
+    indices = np.where(np.isin(self.sim[u], p, assume_unique=True))[0]
+        
+    return p, indices
     
   def getSimOrder(self):
     return self.simOrderByProximity   
   
   def getUtilityMatrix(self):
     return self.matrix
+  
+  def getPredictionMatrix(self):
+    return self.predictionMatrix
   
   # Convertir la matrix generada por loadtxt en una matrix con la que 
   # se pueda trabajas, es decir todos los datos de un mismo tipo
