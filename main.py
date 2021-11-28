@@ -13,7 +13,20 @@ args = parser.parse_args()
 if (os.path.exists('./utilityMatrix/' + args.file) and  args.neighbors > 2):
   file = './utilityMatrix/' + args.file
   A = RS(file, args.neighbors)
-  A.pearson()
+  if (args.metrics == "Pearson"):
+    A.pearson()
+  elif (args.metrics == "Coseno"):
+    A.cosineDistance()
+  else:
+    A.euclideanDistance()
+  
+  if (args.prediction == "Media"):
+    A.predictionDifferenceMean()
+  else:
+    A.predictionSimple()
+  
+  
+  
   print("------------Matrix Utilidad----------------")
   print(A.getUtilityMatrix())
   print("------------Matrix Similitud----------------")
@@ -22,7 +35,7 @@ if (os.path.exists('./utilityMatrix/' + args.file) and  args.neighbors > 2):
   print(A.getSimOrder())
   print("------------Matrix utilidad con predicciones----------------")
   # A.predictionSimple()
-  A.predictionDifferenceMean()
+  # A.predictionDifferenceMean()
   print(A.getPredictionMatrix())
 else: 
   print("File not found or num of neighbors is less than three")
